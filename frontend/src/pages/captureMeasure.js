@@ -1,39 +1,36 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import CameraCapture from "../components/cameraCapture"; 
-import { addNewMeasure } from "../services/addNewMeascure"; 
+import CameraCapture from "../components/cameraCapture";
+import { addNewMeasure } from "../services/addNewMeasure"; 
 
 const CapturaMeasure = () => {
   const { selectedType, customerCode } = useParams();
   const [imageBase64, setImageBase64] = useState(null);
   const [measureResult, setMeasureResult] = useState(null);
+  const [confirmedValue, setConfirmedValue] = useState(null);
   const navigate = useNavigate();
 
-  const handleCapture = (image) => {
-    setImageBase64(image);
-  };
+  const handleCapture = (image) => setImageBase64(image);
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImageBase64(reader.result); 
-    };
+    reader.onloadend = () => setImageBase64(reader.result);
     reader.readAsDataURL(file);
   };
 
   const handleSubmit = async () => {
     const data = {
-      image: imageBase64.split(",")[1], 
+      image: imageBase64.split(",")[1],
       customer_code: customerCode,
       measure_datetime: new Date().toISOString(),
       measure_type: selectedType.toUpperCase(),
     };
 
     try {
-      const response = await addNewMeasure(data); 
+      const response = await addNewMeasure(data);
       setMeasureResult(response.data);
-
+      setConfirmedValue(response.data.measure_value); 
     } catch (error) {
       console.error("Erro ao enviar a medição:", error);
     }
@@ -48,7 +45,7 @@ const CapturaMeasure = () => {
       <CameraCapture onCapture={handleCapture} />
 
       <p className="mt-4 text-white">Ou carregue uma imagem do dispositivo:</p>
-      
+
       <input
         type="file"
         accept="image/*"
@@ -67,12 +64,18 @@ const CapturaMeasure = () => {
       {measureResult && (
         <div className="mt-4 p-4 bg-gray-100 rounded-lg">
           <h3 className="text-lg font-semibold">Resultado da Medição:</h3>
-          <p>{measureResult.measure_value}</p>
+          <p>Valor lido: {measureResult.measure_value}</p>
+          <input
+            type="number"
+            value={confirmedValue}
+            onChange={(e) => setConfirmedValue(e.target.value)}
+            className="rounded-lg w-full px-3 py-2 border border-gray-300 hover:border-gray-400 focus:outline-none"
+          />
           <button
             className="mt-4 rounded-lg bg-green-500 text-white px-4 py-2"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/confirm", { state: { measure_uuid: measureResult.measure_uuid, confirmedValue } })}
           >
-            Voltar para a Página Inicial
+            Confirmar Leitura
           </button>
         </div>
       )}

@@ -27,6 +27,13 @@ const CreateMeasureButton = ({ selectedType }) => {
       >
         Continuar para a captura de imagem
       </button>
+      <button
+          className="rounded-lg bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 font-medium"
+          onClick={() => navigate(`/measures/${customerCode}`)}
+          disabled={!customerCode}
+        >
+          Histórico de Leituras
+        </button>
     </div>
   );
 };
